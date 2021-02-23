@@ -25,4 +25,6 @@ public interface OpenExchanger {
 
     @GetMapping("historical/{date}.json?app_id=${app_id}")
     ExchangerData getHistory(@PathVariable String date);
+
+
 }

@@ -18,17 +18,8 @@ public class ExchangerUtil {
         return LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).toLocalDate().minus(Period.ofDays(1)).toString();
     }
 
-    public static int comparator(Map<String, BigDecimal> mapLast, Map<String, BigDecimal> mapYesterday , String currencyBase, String currencyHit){
-        BigDecimal currBaseLast = mapLast.get(currencyBase);
-        BigDecimal currHitLast = mapLast.get(currencyHit);
-        BigDecimal currBaseYesterday = mapYesterday.get(currencyBase);
-        BigDecimal currHitYesterday = mapYesterday.get(currencyHit);
-        BigDecimal differentLast = currBaseLast.divide(currHitLast, new MathContext(10));
-        BigDecimal differentYesterday = currBaseYesterday.divide(currHitYesterday, new MathContext(10));
-        return differentLast.compareTo(differentYesterday);
-    }
 
-    public static int comparator2(Map<String, BigDecimal> mapLast, Map<String, BigDecimal> mapYesterday , String currencyBase, String currencyHit){
+    public static int comparator(Map<String, BigDecimal> mapLast, Map<String, BigDecimal> mapYesterday , String currencyBase, String currencyHit){
         BigDecimal currBaseLast = mapLast.get(currencyBase);
         BigDecimal currHitLast = mapLast.get(currencyHit);
         BigDecimal currBaseYesterday = mapYesterday.get(currencyBase);
