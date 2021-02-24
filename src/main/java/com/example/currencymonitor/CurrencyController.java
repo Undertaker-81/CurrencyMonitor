@@ -47,7 +47,7 @@ public class CurrencyController {
     String getLatest(@PathVariable String currency) throws JsonProcessingException {
         Map<String, BigDecimal> lastResult = exchanger.getLatest().getRates();
         Map<String, BigDecimal> yesterdayResult = exchanger.getHistory(ExchangerUtil.getYesterday()).getRates();
-        int comp = ExchangerUtil.comparator(lastResult, yesterdayResult, baseCurrency, currency);
+        int comp = ExchangerUtil.comparator(lastResult, yesterdayResult, baseCurrency, currency.toUpperCase());
         String findGif = "";
         if (comp==1){
             findGif="rich" ;
