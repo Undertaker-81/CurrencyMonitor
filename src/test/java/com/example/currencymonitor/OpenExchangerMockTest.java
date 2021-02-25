@@ -1,6 +1,7 @@
 package com.example.currencymonitor;
 
 
+import com.example.currencymonitor.util.ExchangerUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +41,8 @@ public class OpenExchangerMockTest {
     @Autowired
     private OpenExchanger exchanger;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Value("${app_id}")
+    private String appId;
 
     private final String body = "{\n" +
             "  \"AED\": \"United Arab Emirates Dirham\",\n" +
@@ -54,7 +57,7 @@ public class OpenExchangerMockTest {
 
     @Test
     public void getCurrencyCode() throws JsonProcessingException {
-        WireMock.stubFor(get(urlEqualTo("/api/currencies.json?app_id=0bb512548ac5413b9a22a37ecef675c8"))
+        WireMock.stubFor(get(urlEqualTo("/api/currencies.json?app_id=" + appId))
                 .willReturn(aResponse()
                         .withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
                         .withBody(body)
@@ -67,7 +70,7 @@ public class OpenExchangerMockTest {
 
     @Test
     public void getLatest() {
-        WireMock.stubFor(get(urlEqualTo("/api/latest.json?app_id=0bb512548ac5413b9a22a37ecef675c8"))
+        WireMock.stubFor(get(urlEqualTo("/api/latest.json?app_id=" + appId))
                 .willReturn(aResponse()
                         .withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
                         .withBody("{\n" +
@@ -92,5 +95,46 @@ public class OpenExchangerMockTest {
         Map<String, BigDecimal> lastResult = exchanger.getLatest().getRates();
         assertEquals(9, lastResult.size());
         System.out.println(lastResult);
+    }
+
+    @Test
+    public void comparatorTest(){
+        WireMock.stubFor(get(urlEqualTo("/api/latest.json?app_id=" + appId))
+                .willReturn(aResponse()
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
+                        .withBodyFile("latest.json")
+                        .withStatus(OK.value())));
+        Map<String, BigDecimal> lastResult = exchanger.getLatest().getRates();
+
+        String date = "2021-02-23";
+        WireMock.stubFor(get(urlEqualTo("/api/historical/" + date +".json?app_id=" + appId))
+                .willReturn(aResponse()
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
+                        .withBodyFile("history.json")
+                        .withStatus(OK.value())));
+        Map<String, BigDecimal> historyResult = exchanger.getHistory(date).getRates();
+        //курс уменьшился
+        assertEquals(-1, ExchangerUtil.comparator(lastResult, historyResult, "RUB", "AMD") );
+
+    }
+
+    @Test
+    public void  comparatorTest2(){
+        WireMock.stubFor(get(urlEqualTo("/api/latest.json?app_id=" + appId))
+                .willReturn(aResponse()
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
+                        .withBodyFile("latest.json")
+                        .withStatus(OK.value())));
+        Map<String, BigDecimal> lastResult = exchanger.getLatest().getRates();
+
+        String date = "2021-02-23";
+        WireMock.stubFor(get(urlEqualTo("/api/historical/" + date +".json?app_id=" + appId))
+                .willReturn(aResponse()
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
+                        .withBodyFile("historyUP.json")
+                        .withStatus(OK.value())));
+        Map<String, BigDecimal> historyResult = exchanger.getHistory(date).getRates();
+        //курс увеличился
+        assertEquals(1, ExchangerUtil.comparator(lastResult, historyResult, "RUB", "AMD") );
     }
 }
