@@ -25,7 +25,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  * 24.02.2021
  */
 @ExtendWith(SpringExtension.class)
-@AutoConfigureWireMock(port = 8080)
+@AutoConfigureWireMock(port = 8081)
 @SpringBootTest(webEnvironment = NONE)
 public class GiphyMockTest {
 
