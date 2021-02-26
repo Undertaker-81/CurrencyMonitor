@@ -42,18 +42,23 @@ public class CurrencyController {
     }
 
     @GetMapping(value = "/currency/{currency}")
-    String getLatest(@PathVariable String currency) throws JsonProcessingException {
-        Map<String, BigDecimal> lastResult = exchanger.getLatest().getRates();
-        Map<String, BigDecimal> yesterdayResult = exchanger.getHistory(ExchangerUtil.getYesterday()).getRates();
-        int comp = ExchangerUtil.comparator(lastResult, yesterdayResult, baseCurrency, currency.toUpperCase());
-        String findGif = "";
-        if (comp==1){
-            findGif="rich" ;
+    String getLatest(@PathVariable String currency) {
+        try {
+            Map<String, BigDecimal> lastResult = exchanger.getLatest().getRates();
+            Map<String, BigDecimal> yesterdayResult = exchanger.getHistory(ExchangerUtil.getYesterday()).getRates();
+            int comp = ExchangerUtil.comparator(lastResult, yesterdayResult, baseCurrency, currency.toUpperCase());
+            String findGif = "";
+            if (comp==1){
+                findGif="rich" ;
+            }
+            else findGif = "broke";
+            ResponseEntity<String> gifR = giphy.getRandomGif(findGif);
+            JsonNode jsonNode = objectMapper.readTree(gifR.getBody());
+            return "<img src=" + jsonNode.findValue("images").findValue("url").asText() + " alt=gif>";
+        }catch (Exception e){
+            return e.getMessage();
         }
-        else findGif = "broke";
-        ResponseEntity<String> gifR = giphy.getRandomGif(findGif);
-        JsonNode jsonNode = objectMapper.readTree(gifR.getBody());
-        return "<img src=" + jsonNode.findValue("images").findValue("url").asText() + " alt=gif>";
+
     }
 
 
